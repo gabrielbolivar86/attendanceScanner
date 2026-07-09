@@ -4,9 +4,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <style>
-    body { font-family: sans-serif; text-align: center; }
-    video { width: 100%; max-width: 400px; }
-    #resultado { font-size: 1.3em; margin-top: 10px; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      background: #111;
+      color: white;
+    }
+    video { width: 100%; max-width: 500px; margin-top: 10px; }
+    #resultado { font-size: 1.2em; margin-top: 10px; padding: 0 10px; }
+
+    /* Overlay de pantalla completa */
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      text-align: center;
+      padding: 20px;
+    }
+    #overlay.exito { background: #1fa855; }
+    #overlay.error  { background: #d93838; }
+    #overlay .icono { font-size: 6em; line-height: 1; }
+    #overlay .texto { font-size: 1.6em; margin-top: 15px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -15,17 +40,26 @@
   <canvas id="canvas" hidden></canvas>
   <div id="resultado">Apunta al QR del alumno...</div>
 
+  <div id="overlay">
+    <div class="icono" id="overlayIcono"></div>
+    <div class="texto" id="overlayTexto"></div>
+  </div>
+
   <script>
     // ⚠️ Debe ser IDÉNTICO al AUTH_TOKEN en Code.gs
     const AUTH_TOKEN = "un-secreto-largo-y-dificil-2026";
 
-    // URL de la nueva implementación
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygA2nrvO6M0ZN_G4Aa2_IhpjGi5ti8IYkNaV2CS7wvlXGCqKDCcPp4oIxGsw3JrSIH4A/exec";
+
+    const DURACION_OVERLAY_MS = 2000; // cuánto tiempo se queda la pantalla verde/roja
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const resultadoDiv = document.getElementById('resultado');
+    const overlay = document.getElementById('overlay');
+    const overlayIcono = document.getElementById('overlayIcono');
+    const overlayTexto = document.getElementById('overlayTexto');
     let escaneando = true;
 
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -50,8 +84,7 @@
 
       const partes = contenidoQR.split(";");
       if (partes.length !== 3) {
-        resultadoDiv.textContent = "❌ QR con formato inválido";
-        setTimeout(() => { escaneando = true; resultadoDiv.textContent = "Apunta al QR del alumno..."; }, 2000);
+        mostrarResultado(false, "❌ QR con formato inválido");
         return;
       }
       const [nombre, apellido, curso] = partes;
@@ -64,14 +97,62 @@
         .then(r => r.text())
         .then(txt => {
           const data = JSON.parse(txt);
-          resultadoDiv.textContent = data.mensaje;
-          setTimeout(() => { escaneando = true; resultadoDiv.textContent = "Apunta al QR del alumno..."; }, 2000);
+          mostrarResultado(data.ok, data.mensaje);
         })
         .catch(() => {
-          resultadoDiv.textContent = "❌ Error de conexión";
-          setTimeout(() => { escaneando = true; }, 2000);
+          mostrarResultado(false, "❌ Error de conexión");
         });
     }
+
+    function mostrarResultado(exito, mensaje) {
+      overlay.className = exito ? "exito" : "error";
+      overlayIcono.textContent = exito ? "✅" : "⛔";
+      overlayTexto.textContent = mensaje;
+      overlay.style.display = "flex";
+
+      if (exito) sonidoExito(); else sonidoError();
+
+      setTimeout(() => {
+        overlay.style.display = "none";
+        resultadoDiv.textContent = "Apunta al QR del alumno...";
+        escaneando = true;
+      }, DURACION_OVERLAY_MS);
+    }
+
+    // ---- Sonidos generados con Web Audio API (no requieren archivos externos) ----
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function beep(frecuencia, duracionMs, tipo = "sine", volumen = 0.3) {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = tipo;
+      osc.frequency.value = frecuencia;
+      gain.gain.value = volumen;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duracionMs / 1000);
+    }
+
+    function sonidoExito() {
+      // Dos tonos ascendentes, tipo "ding"
+      beep(880, 120);
+      setTimeout(() => beep(1200, 150), 130);
+    }
+
+    function sonidoError() {
+      // Un tono grave y corto, tipo "buzz"
+      beep(220, 300, "square", 0.25);
+    }
+
+    // Los navegadores requieren interacción del usuario para habilitar audio.
+    // Este listener "despierta" el audio la primera vez que se toca la pantalla.
+    document.body.addEventListener('click', () => { getAudioCtx(); }, { once: true });
   </script>
 </body>
 </html>
