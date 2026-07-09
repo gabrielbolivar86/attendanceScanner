@@ -16,11 +16,11 @@
   <div id="resultado">Apunta al QR del alumno...</div>
 
   <script>
-    // ⚠️ Este token debe ser IDÉNTICO al AUTH_TOKEN en Code.gs
+    // ⚠️ Debe ser IDÉNTICO al AUTH_TOKEN en Code.gs
     const AUTH_TOKEN = "un-secreto-largo-y-dificil-2026";
 
-    // ⚠️ Reemplaza con la URL de tu Web App desplegada (termina en /exec)
-    const SCRIPT_URL = "https://script.google.com/macros/s/TU_ID_AQUI/exec";
+    // URL de la nueva implementación
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygA2nrvO6M0ZN_G4Aa2_IhpjGi5ti8IYkNaV2CS7wvlXGCqKDCcPp4oIxGsw3JrSIH4A/exec";
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -44,15 +44,22 @@
       requestAnimationFrame(tick);
     }
 
-    function registrar(id) {
+    function registrar(contenidoQR) {
       escaneando = false;
       resultadoDiv.textContent = "Enviando...";
 
-      // Content-Type: text/plain evita el preflight OPTIONS que Apps Script no maneja
+      const partes = contenidoQR.split(";");
+      if (partes.length !== 3) {
+        resultadoDiv.textContent = "❌ QR con formato inválido";
+        setTimeout(() => { escaneando = true; resultadoDiv.textContent = "Apunta al QR del alumno..."; }, 2000);
+        return;
+      }
+      const [nombre, apellido, curso] = partes;
+
       fetch(SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ id: id, token: AUTH_TOKEN })
+        body: JSON.stringify({ nombre, apellido, curso, token: AUTH_TOKEN })
       })
         .then(r => r.text())
         .then(txt => {
@@ -60,7 +67,7 @@
           resultadoDiv.textContent = data.mensaje;
           setTimeout(() => { escaneando = true; resultadoDiv.textContent = "Apunta al QR del alumno..."; }, 2000);
         })
-        .catch(err => {
+        .catch(() => {
           resultadoDiv.textContent = "❌ Error de conexión";
           setTimeout(() => { escaneando = true; }, 2000);
         });
