@@ -1,158 +1,716 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin: 0;
-      background: #111;
-      color: white;
-    }
-    video { width: 100%; max-width: 500px; margin-top: 10px; }
-    #resultado { font-size: 1.2em; margin-top: 10px; padding: 0 10px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Asistencia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Scoutie+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<style>
+  :root {
+    --verde-primario: #218633;
+    --verde-acento: #67ac40;
+    --verde-suave: #7eae6f;
+    --verde-fondo: #eef5ec;
+    --blanco: #ffffff;
+    --texto: #16291c;
+    --borde: #e3ede0;
+    --rojo: #c0392b;
+  }
 
-    /* Overlay de pantalla completa */
-    #overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      text-align: center;
-      padding: 20px;
-    }
-    #overlay.exito { background: #1fa855; }
-    #overlay.error  { background: #d93838; }
-    #overlay .icono { font-size: 6em; line-height: 1; }
-    #overlay .texto { font-size: 1.6em; margin-top: 15px; font-weight: bold; }
-  </style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Scoutie Sans', sans-serif;
+    color: var(--texto);
+    background: var(--blanco);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    background: var(--verde-primario);
+    color: var(--blanco);
+    padding: 16px 20px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 700;
+  }
+  header p {
+    margin: 2px 0 0;
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  /* ---------- Pantalla de reposo ---------- */
+  #pantallaReposo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 70px);
+    padding: 30px 20px;
+    text-align: center;
+  }
+  #pantallaReposo p {
+    color: #5c6b5f;
+    max-width: 280px;
+    margin-bottom: 24px;
+  }
+  .boton-principal {
+    background: var(--verde-primario);
+    color: var(--blanco);
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 18px 32px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .boton-principal:active { background: #1a6c29; }
+
+  /* ---------- Pantalla activa ---------- */
+  #pantallaActiva { display: none; padding-bottom: 90px; }
+
+  .barra-estado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--verde-fondo);
+    padding: 10px 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--verde-primario);
+  }
+  .barra-estado .punto {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--verde-acento);
+    margin-right: 6px;
+    animation: pulso 1.5s infinite;
+  }
+  @keyframes pulso {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  #videoContenedor {
+    position: relative;
+    background: #000;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-height: 60vh;
+    overflow: hidden;
+  }
+  #video { width: 100%; height: 100%; object-fit: cover; }
+  #mensajeCamara {
+    position: absolute;
+    bottom: 10px; left: 0; right: 0;
+    text-align: center;
+    color: white;
+    font-size: 0.85em;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+
+  .acciones {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .boton-secundario {
+    background: var(--verde-suave);
+    color: var(--blanco);
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1em;
+  }
+  .boton-secundario:active { background: #6a9a5e; }
+
+  /* ---------- Log (vista compacta dentro de la página) ---------- */
+  #logCompacto {
+    margin: 0 16px;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--verde-fondo);
+    font-weight: 700;
+    font-size: 0.95em;
+  }
+  .boton-expandir {
+    background: none;
+    color: var(--verde-primario);
+    font-weight: 600;
+    font-size: 0.85em;
+    padding: 4px 8px;
+  }
+  .log-lista { max-height: 180px; overflow-y: auto; }
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-top: 1px solid var(--borde);
+    font-size: 0.9em;
+  }
+  .log-item .nombre { font-weight: 600; }
+  .etiqueta {
+    font-size: 0.72em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    color: white;
+  }
+  .etiqueta.qr { background: var(--verde-acento); }
+  .etiqueta.manual { background: var(--verde-suave); }
+  .log-vacio { padding: 20px 14px; text-align: center; color: #8a9a8c; font-size: 0.9em; }
+
+  /* ---------- Botón fijo de terminar ---------- */
+  .barra-inferior {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--blanco);
+    border-top: 1px solid var(--borde);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .boton-terminar {
+    background: var(--verde-primario);
+    color: var(--blanco);
+    font-weight: 700;
+    padding: 15px;
+    border-radius: 12px;
+    width: 100%;
+    font-size: 1em;
+  }
+  .boton-terminar:active { background: #1a6c29; }
+
+  /* ---------- Overlay de resultado (flash verde/rojo) ---------- */
+  #overlayResultado {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    text-align: center;
+    padding: 20px;
+  }
+  #overlayResultado.exito { background: var(--verde-acento); }
+  #overlayResultado.error { background: var(--rojo); }
+  #overlayResultado .icono { font-size: 5.5em; line-height: 1; }
+  #overlayResultado .texto { font-size: 1.4em; margin-top: 12px; font-weight: 700; color: white; }
+
+  /* ---------- Modal registro manual ---------- */
+  .modal-fondo {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(22,41,28,0.55);
+    display: none;
+    align-items: flex-end;
+    z-index: 998;
+  }
+  .modal-caja {
+    background: white;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  }
+  .modal-caja h2 { margin: 0 0 16px; font-size: 1.15em; }
+  .campo { margin-bottom: 12px; }
+  .campo label {
+    display: block;
+    font-size: 0.82em;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #4a5a4d;
+  }
+  .campo input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1em;
+    font-family: inherit;
+  }
+  .campo input:focus { outline: 2px solid var(--verde-acento); border-color: transparent; }
+  .modal-botones { display: flex; gap: 10px; margin-top: 8px; }
+  .modal-botones button { flex: 1; padding: 13px; border-radius: 10px; font-weight: 600; }
+  .btn-cancelar { background: var(--verde-fondo); color: var(--texto); }
+  .btn-guardar { background: var(--verde-primario); color: white; }
+
+  /* ---------- Log en pantalla completa ---------- */
+  #logCompleto {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: white;
+    display: none;
+    flex-direction: column;
+    z-index: 997;
+  }
+  .log-completo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--verde-primario);
+    color: white;
+  }
+  .log-completo-header h2 { margin: 0; font-size: 1.1em; }
+  .boton-cerrar {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    font-size: 1.1em;
+    line-height: 1;
+  }
+  #logCompletoLista { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+
+  /* ---------- Resumen final ---------- */
+  #modalResumen .modal-caja { text-align: center; }
+  #modalResumen .icono-resumen { font-size: 3.5em; margin-bottom: 10px; }
+</style>
 </head>
 <body>
-  <h3>Lector de asistencia</h3>
-  <video id="video"></video>
-  <canvas id="canvas" hidden></canvas>
-  <div id="resultado">Apunta al QR del alumno...</div>
 
-  <div id="overlay">
-    <div class="icono" id="overlayIcono"></div>
-    <div class="texto" id="overlayTexto"></div>
+<header>
+  <h1>Asistencia</h1>
+  <p id="fechaHeader"></p>
+</header>
+
+<!-- ===== Pantalla de reposo ===== -->
+<div id="pantallaReposo">
+  <p>Toca el botón para abrir la cámara y comenzar a registrar la asistencia de hoy.</p>
+  <button class="boton-principal" onclick="comenzarRegistro()">Comenzar registro</button>
+</div>
+
+<!-- ===== Pantalla activa ===== -->
+<div id="pantallaActiva">
+  <div class="barra-estado">
+    <span><span class="punto"></span>En curso</span>
+    <span id="contadorEstado">0 registrados</span>
   </div>
 
-  <script>
-    // ⚠️ Debe ser IDÉNTICO al AUTH_TOKEN en Code.gs
-    const AUTH_TOKEN = "un-secreto-largo-y-dificil-2026";
+  <div id="videoContenedor">
+    <video id="video" playsinline autoplay muted></video>
+    <div id="mensajeCamara">Apunta al QR del alumno</div>
+  </div>
+  <canvas id="canvas" hidden></canvas>
 
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygA2nrvO6M0ZN_G4Aa2_IhpjGi5ti8IYkNaV2CS7wvlXGCqKDCcPp4oIxGsw3JrSIH4A/exec";
+  <div class="acciones">
+    <button class="boton-secundario" onclick="abrirModalManual()">+ Registrar manualmente</button>
+  </div>
 
-    const DURACION_OVERLAY_MS = 2000; // cuánto tiempo se queda la pantalla verde/roja
+  <div id="logCompacto">
+    <div class="log-header">
+      <span id="logTitulo">Registrados hoy (0)</span>
+      <button class="boton-expandir" onclick="abrirLogCompleto()">Ver todo ⤢</button>
+    </div>
+    <div class="log-lista" id="logListaCompacta">
+      <div class="log-vacio">Aún no hay registros en esta sesión.</div>
+    </div>
+  </div>
 
+  <div class="barra-inferior">
+    <button class="boton-terminar" onclick="terminarRegistro()">Terminar registro</button>
+  </div>
+</div>
+
+<!-- ===== Overlay verde/rojo ===== -->
+<div id="overlayResultado">
+  <div class="icono" id="overlayIcono"></div>
+  <div class="texto" id="overlayTexto"></div>
+</div>
+
+<!-- ===== Modal registro manual ===== -->
+<div class="modal-fondo" id="modalManual">
+  <div class="modal-caja">
+    <h2>Registrar alumno nuevo</h2>
+    <div class="campo">
+      <label>Nombre</label>
+      <input type="text" id="inputNombre" autocomplete="off">
+    </div>
+    <div class="campo">
+      <label>Apellido</label>
+      <input type="text" id="inputApellido" autocomplete="off">
+    </div>
+    <div class="campo">
+      <label>Celular</label>
+      <input type="tel" id="inputCelular" autocomplete="off">
+    </div>
+    <div class="campo">
+      <label>Curso</label>
+      <input type="text" id="inputCurso" autocomplete="off">
+    </div>
+    <div class="modal-botones">
+      <button class="btn-cancelar" onclick="cerrarModalManual()">Cancelar</button>
+      <button class="btn-guardar" onclick="guardarManual()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Log en pantalla completa ===== -->
+<div id="logCompleto">
+  <div class="log-completo-header">
+    <h2 id="logCompletoTitulo">Registrados hoy (0)</h2>
+    <button class="boton-cerrar" onclick="cerrarLogCompleto()">✕</button>
+  </div>
+  <div id="logCompletoLista"></div>
+</div>
+
+<!-- ===== Resumen final ===== -->
+<div class="modal-fondo" id="modalResumen">
+  <div class="modal-caja">
+    <div class="icono-resumen">✅</div>
+    <h2 id="resumenTitulo">Sesión guardada</h2>
+    <p id="resumenTexto"></p>
+    <div class="modal-botones">
+      <button class="btn-guardar" style="width:100%" onclick="cerrarResumen()">Listo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ⚠️ Debe ser idéntico al AUTH_TOKEN en Code.gs
+  const AUTH_TOKEN = "un-secreto-largo-y-dificil-2026";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygA2nrvO6M0ZN_G4Aa2_IhpjGi5ti8IYkNaV2CS7wvlXGCqKDCcPp4oIxGsw3JrSIH4A/exec";
+  const CLAVE_STORAGE = "asistencia_sesion_pendiente";
+
+  let roster = [];           // lista completa de alumnos, cargada al iniciar
+  let sesion = [];           // registros acumulados en esta sesión (local)
+  let idsYaRegistrados = new Set(); // para chequear duplicados al instante
+  let escaneando = true;
+  let streamCamara = null;
+
+  document.getElementById("fechaHeader").textContent =
+    new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // Despierta el audio con el primer toque (requerido por navegadores móviles)
+  let audioCtx = null;
+  document.body.addEventListener('click', () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }, { once: true });
+
+  // ================= INICIO DE SESIÓN =================
+
+  function comenzarRegistro() {
+    document.getElementById("pantallaReposo").style.display = "none";
+    document.getElementById("pantallaActiva").style.display = "block";
+
+    restaurarSesionSiExiste();
+    cargarRoster();
+    iniciarCamara();
+  }
+
+  function cargarRoster() {
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ accion: "roster", token: AUTH_TOKEN })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          roster = data.alumnos;
+          document.getElementById("mensajeCamara").textContent = "Apunta al QR del alumno";
+        } else {
+          document.getElementById("mensajeCamara").textContent = "❌ No se pudo cargar la lista de alumnos";
+        }
+      })
+      .catch(() => {
+        document.getElementById("mensajeCamara").textContent = "❌ Sin conexión para cargar la lista";
+      });
+  }
+
+  function iniciarCamara() {
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        streamCamara = stream;
+        video.srcObject = stream;
+        video.play();
+        requestAnimationFrame(tick);
+      })
+      .catch(err => {
+        document.getElementById("mensajeCamara").textContent = "❌ Error de cámara: " + err.message;
+      });
+  }
+
+  function tick() {
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const resultadoDiv = document.getElementById('resultado');
-    const overlay = document.getElementById('overlay');
-    const overlayIcono = document.getElementById('overlayIcono');
-    const overlayTexto = document.getElementById('overlayTexto');
-    let escaneando = true;
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => { video.srcObject = stream; video.play(); requestAnimationFrame(tick); })
-      .catch(err => { resultadoDiv.textContent = "❌ Error de cámara: " + err.message; });
-
-    function tick() {
-      if (video.readyState === video.HAVE_ENOUGH_DATA && escaneando) {
-        canvas.height = video.videoHeight;
-        canvas.width = video.videoWidth;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) registrar(code.data);
-      }
-      requestAnimationFrame(tick);
+    if (video.readyState === video.HAVE_ENOUGH_DATA && escaneando) {
+      const ctx = canvas.getContext('2d');
+      canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) procesarQR(code.data);
     }
+    requestAnimationFrame(tick);
+  }
 
-    function registrar(contenidoQR) {
-      escaneando = false;
-      resultadoDiv.textContent = "Enviando...";
+  // ================= IDENTIFICACIÓN LOCAL (sin red) =================
 
+  function identificarAlumno(contenidoQR) {
+    if (contenidoQR.startsWith("EST-")) {
+      return roster.find(a => a.id === contenidoQR) || null;
+    }
+    if (contenidoQR.includes(";")) {
       const partes = contenidoQR.split(";");
-      if (partes.length !== 3) {
-        mostrarResultado(false, "❌ QR con formato inválido");
-        return;
+      if (partes.length < 2) return null;
+      const [nombre, apellido] = partes;
+      return roster.find(a =>
+        a.nombre.trim().toLowerCase() === nombre.trim().toLowerCase() &&
+        a.apellido.trim().toLowerCase() === apellido.trim().toLowerCase()
+      ) || null;
+    }
+    return null;
+  }
+
+  function procesarQR(contenidoQR) {
+    escaneando = false;
+    const alumno = identificarAlumno(contenidoQR);
+
+    if (!alumno) {
+      mostrarFlash(false, "❌ QR no reconocido");
+      return;
+    }
+    if (idsYaRegistrados.has(alumno.id)) {
+      mostrarFlash(false, `⚠️ ${alumno.nombre} ya fue registrado`);
+      return;
+    }
+
+    agregarASesion({
+      tipo: "existente",
+      id: alumno.id,
+      nombre: alumno.nombre,
+      apellido: alumno.apellido,
+      curso: alumno.curso,
+      metodo: "qr"
+    });
+
+    mostrarFlash(true, `✅ ${alumno.nombre} ${alumno.apellido}`);
+  }
+
+  function mostrarFlash(exito, mensaje) {
+    const overlay = document.getElementById("overlayResultado");
+    overlay.className = exito ? "exito" : "error";
+    document.getElementById("overlayIcono").textContent = exito ? "✅" : "⛔";
+    document.getElementById("overlayTexto").textContent = mensaje;
+    overlay.style.display = "flex";
+
+    if (exito) sonidoExito(); else sonidoError();
+
+    setTimeout(() => {
+      overlay.style.display = "none";
+      escaneando = true;
+    }, 1100); // más corto que antes: ya no esperamos al servidor, así que no hace falta bloquear tanto
+  }
+
+  // ================= REGISTRO MANUAL =================
+
+  function abrirModalManual() {
+    document.getElementById("modalManual").style.display = "flex";
+  }
+  function cerrarModalManual() {
+    document.getElementById("modalManual").style.display = "none";
+    ["inputNombre","inputApellido","inputCelular","inputCurso"].forEach(id => {
+      document.getElementById(id).value = "";
+    });
+  }
+  function guardarManual() {
+    const nombre = document.getElementById("inputNombre").value.trim();
+    const apellido = document.getElementById("inputApellido").value.trim();
+    const celular = document.getElementById("inputCelular").value.trim();
+    const curso = document.getElementById("inputCurso").value.trim();
+
+    if (!nombre || !apellido || !curso) {
+      alert("Nombre, apellido y curso son obligatorios.");
+      return;
+    }
+
+    agregarASesion({
+      tipo: "nuevo",
+      nombre, apellido, celular, curso,
+      metodo: "manual"
+    });
+
+    cerrarModalManual();
+    sonidoExito();
+  }
+
+  // ================= MANEJO DE LA SESIÓN LOCAL =================
+
+  function agregarASesion(registro) {
+    registro.hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    sesion.push(registro);
+    if (registro.id) idsYaRegistrados.add(registro.id);
+    guardarEnStorage();
+    renderizarLog();
+  }
+
+  function renderizarLog() {
+    document.getElementById("logTitulo").textContent = `Registrados hoy (${sesion.length})`;
+    document.getElementById("logCompletoTitulo").textContent = `Registrados hoy (${sesion.length})`;
+    document.getElementById("contadorEstado").textContent = `${sesion.length} registrados`;
+
+    const html = sesion.length === 0
+      ? '<div class="log-vacio">Aún no hay registros en esta sesión.</div>'
+      : sesion.slice().reverse().map(r => `
+          <div class="log-item">
+            <span class="nombre">${escaparHtml(r.nombre)} ${escaparHtml(r.apellido)}</span>
+            <span>
+              <span class="etiqueta ${r.metodo}">${r.metodo === 'qr' ? 'QR' : 'Manual'}</span>
+              <span style="margin-left:6px;color:#8a9a8c;font-size:0.85em;">${r.hora}</span>
+            </span>
+          </div>
+        `).join("");
+
+    document.getElementById("logListaCompacta").innerHTML = html;
+    document.getElementById("logCompletoLista").innerHTML = html;
+  }
+
+  function escaparHtml(texto) {
+    const div = document.createElement("div");
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  function abrirLogCompleto() {
+    document.getElementById("logCompleto").style.display = "flex";
+  }
+  function cerrarLogCompleto() {
+    document.getElementById("logCompleto").style.display = "none";
+  }
+
+  // ================= PERSISTENCIA LOCAL (respaldo ante cierre accidental) =================
+
+  function guardarEnStorage() {
+    localStorage.setItem(CLAVE_STORAGE, JSON.stringify({
+      sesion,
+      idsYaRegistrados: Array.from(idsYaRegistrados)
+    }));
+  }
+
+  function restaurarSesionSiExiste() {
+    const guardado = localStorage.getItem(CLAVE_STORAGE);
+    if (!guardado) return;
+    try {
+      const datos = JSON.parse(guardado);
+      if (datos.sesion && datos.sesion.length > 0) {
+        sesion = datos.sesion;
+        idsYaRegistrados = new Set(datos.idsYaRegistrados || []);
+        renderizarLog();
       }
-      const [nombre, apellido, curso] = partes;
+    } catch (e) { /* storage corrupto, se ignora */ }
+  }
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ nombre, apellido, curso, token: AUTH_TOKEN })
+  function limpiarStorage() {
+    localStorage.removeItem(CLAVE_STORAGE);
+  }
+
+  // ================= TERMINAR Y ENVIAR AL BACKEND =================
+
+  function terminarRegistro() {
+    if (sesion.length === 0) {
+      if (!confirm("No hay registros en esta sesión. ¿Terminar de todas formas?")) return;
+    }
+
+    document.getElementById("mensajeCamara").textContent = "Guardando...";
+    escaneando = false;
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ accion: "guardar_lote", token: AUTH_TOKEN, registros: sesion })
+    })
+      .then(r => r.json())
+      .then(data => {
+        mostrarResumen(data);
+        limpiarStorage();
+        detenerCamara();
+        resetearASesionNueva();
       })
-        .then(r => r.text())
-        .then(txt => {
-          const data = JSON.parse(txt);
-          mostrarResultado(data.ok, data.mensaje);
-        })
-        .catch(() => {
-          mostrarResultado(false, "❌ Error de conexión");
-        });
-    }
-
-    function mostrarResultado(exito, mensaje) {
-      overlay.className = exito ? "exito" : "error";
-      overlayIcono.textContent = exito ? "✅" : "⛔";
-      overlayTexto.textContent = mensaje;
-      overlay.style.display = "flex";
-
-      if (exito) sonidoExito(); else sonidoError();
-
-      setTimeout(() => {
-        overlay.style.display = "none";
-        resultadoDiv.textContent = "Apunta al QR del alumno...";
+      .catch(() => {
+        alert("❌ No se pudo conectar para guardar la sesión. Los datos siguen guardados localmente, intenta de nuevo.");
         escaneando = true;
-      }, DURACION_OVERLAY_MS);
-    }
+      });
+  }
 
-    // ---- Sonidos generados con Web Audio API (no requieren archivos externos) ----
-    let audioCtx = null;
-    function getAudioCtx() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      return audioCtx;
-    }
+  function mostrarResumen(data) {
+    document.getElementById("resumenTitulo").textContent = data.ok ? "Sesión guardada" : "Hubo un problema";
+    document.getElementById("resumenTexto").textContent = data.mensaje || "";
+    document.getElementById("modalResumen").style.display = "flex";
+  }
 
-    function beep(frecuencia, duracionMs, tipo = "sine", volumen = 0.3) {
-      const ctx = getAudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = tipo;
-      osc.frequency.value = frecuencia;
-      gain.gain.value = volumen;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + duracionMs / 1000);
-    }
+  function cerrarResumen() {
+    document.getElementById("modalResumen").style.display = "none";
+    document.getElementById("pantallaActiva").style.display = "none";
+    document.getElementById("pantallaReposo").style.display = "flex";
+  }
 
-    function sonidoExito() {
-      // Dos tonos ascendentes, tipo "ding"
-      beep(880, 120);
-      setTimeout(() => beep(1200, 150), 130);
+  function detenerCamara() {
+    if (streamCamara) {
+      streamCamara.getTracks().forEach(track => track.stop());
+      streamCamara = null;
     }
+  }
 
-    function sonidoError() {
-      // Un tono grave y corto, tipo "buzz"
-      beep(220, 300, "square", 0.25);
-    }
+  function resetearASesionNueva() {
+    sesion = [];
+    idsYaRegistrados = new Set();
+    renderizarLog();
+  }
 
-    // Los navegadores requieren interacción del usuario para habilitar audio.
-    // Este listener "despierta" el audio la primera vez que se toca la pantalla.
-    document.body.addEventListener('click', () => { getAudioCtx(); }, { once: true });
-  </script>
+  // ================= SONIDOS (Web Audio API, sin archivos externos) =================
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function beep(frecuencia, duracionMs, tipo = "sine", volumen = 0.3) {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = tipo;
+    osc.frequency.value = frecuencia;
+    gain.gain.value = volumen;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duracionMs / 1000);
+  }
+  function sonidoExito() {
+    beep(880, 120);
+    setTimeout(() => beep(1200, 150), 130);
+  }
+  function sonidoError() {
+    beep(220, 300, "square", 0.25);
+  }
+</script>
 </body>
 </html>
