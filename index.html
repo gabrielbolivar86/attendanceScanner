@@ -296,9 +296,23 @@
 <body>
 
 <header>
-  <h1>Asistencia</h1>
-  <p id="fechaHeader"></p>
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <h1>Asistencia</h1>
+      <p id="fechaHeader"></p>
+    </div>
+    <button onclick="toggleDebug()" style="background:rgba(255,255,255,0.2); color:white; width:34px; height:34px; border-radius:50%; font-size:1em;">🐞</button>
+  </div>
 </header>
+
+<!-- ===== Panel de depuración ===== -->
+<div id="panelDebug" style="display:none; background:#0d1b10; color:#8fe6a0; font-family:monospace; font-size:0.75em; padding:10px 14px; max-height:160px; overflow-y:auto; white-space:pre-wrap;">
+  <div style="display:flex; justify-content:space-between; color:#c9d9cb; font-weight:bold; margin-bottom:6px;">
+    <span>LOG</span>
+    <span onclick="limpiarDebug()" style="cursor:pointer;">limpiar</span>
+  </div>
+  <div id="debugLista"></div>
+</div>
 
 <!-- ===== Pantalla de reposo ===== -->
 <div id="pantallaReposo">
@@ -315,11 +329,12 @@
 
   <div id="videoContenedor">
     <video id="video" playsinline autoplay muted></video>
-    <div id="mensajeCamara">Apunta al QR del alumno</div>
+    <div id="mensajeCamara">Apunta al QR del alumno y presiona Escanear</div>
   </div>
   <canvas id="canvas" hidden></canvas>
 
   <div class="acciones">
+    <button class="boton-principal" style="padding:16px;" onclick="capturarYEscanear()">📷 Escanear QR</button>
     <button class="boton-secundario" onclick="abrirModalManual()">+ Registrar manualmente</button>
   </div>
 
@@ -401,11 +416,35 @@
   let roster = [];           // lista completa de alumnos, cargada al iniciar
   let sesion = [];           // registros acumulados en esta sesión (local)
   let idsYaRegistrados = new Set(); // para chequear duplicados al instante
-  let escaneando = true;
+  let escaneando = true;     // controla si se puede capturar un QR ahora mismo
   let streamCamara = null;
+  let rosterCargado = false;
 
   document.getElementById("fechaHeader").textContent =
     new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // ================= LOG DE DEPURACIÓN VISIBLE EN PANTALLA =================
+
+  function log(mensaje, tipo = "info") {
+    const hora = new Date().toLocaleTimeString('es-ES');
+    const color = tipo === "error" ? "#ff8080" : (tipo === "ok" ? "#8fe6a0" : "#c9d9cb");
+    const linea = document.createElement("div");
+    linea.style.color = color;
+    linea.textContent = `[${hora}] ${mensaje}`;
+    const lista = document.getElementById("debugLista");
+    lista.appendChild(linea);
+    lista.scrollTop = lista.scrollHeight;
+    console.log(`[ASISTENCIA] ${mensaje}`);
+  }
+  function toggleDebug() {
+    const panel = document.getElementById("panelDebug");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  }
+  function limpiarDebug() {
+    document.getElementById("debugLista").innerHTML = "";
+  }
+
+  log("Página cargada. SCRIPT_URL = " + SCRIPT_URL);
 
   // Despierta el audio con el primer toque (requerido por navegadores móviles)
   let audioCtx = null;
@@ -425,52 +464,103 @@
   }
 
   function cargarRoster() {
+    log("Cargando roster desde el backend...");
+    document.getElementById("mensajeCamara").textContent = "Cargando lista de alumnos...";
+
     fetch(SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ accion: "roster", token: AUTH_TOKEN })
     })
-      .then(r => r.json())
-      .then(data => {
+      .then(r => {
+        log(`Respuesta HTTP recibida: status ${r.status}`);
+        return r.text(); // texto primero, así podemos ver el contenido aunque no sea JSON válido
+      })
+      .then(texto => {
+        let data;
+        try {
+          data = JSON.parse(texto);
+        } catch (err) {
+          log("❌ La respuesta no es JSON válido. Contenido recibido: " + texto.slice(0, 300), "error");
+          document.getElementById("mensajeCamara").textContent = "❌ Error al cargar lista (ver logs 🐞)";
+          return;
+        }
+
         if (data.ok) {
           roster = data.alumnos;
-          document.getElementById("mensajeCamara").textContent = "Apunta al QR del alumno";
+          rosterCargado = true;
+          log(`✅ Roster cargado: ${roster.length} alumnos.`, "ok");
+          document.getElementById("mensajeCamara").textContent = "Apunta al QR del alumno y presiona Escanear";
         } else {
-          document.getElementById("mensajeCamara").textContent = "❌ No se pudo cargar la lista de alumnos";
+          log("❌ El backend respondió ok:false → " + (data.mensaje || "sin mensaje"), "error");
+          document.getElementById("mensajeCamara").textContent = "❌ " + (data.mensaje || "Error al cargar lista");
         }
       })
-      .catch(() => {
-        document.getElementById("mensajeCamara").textContent = "❌ Sin conexión para cargar la lista";
+      .catch(err => {
+        log("❌ Error de red al pedir el roster: " + err.message, "error");
+        document.getElementById("mensajeCamara").textContent = "❌ Sin conexión (ver logs 🐞)";
       });
   }
 
   function iniciarCamara() {
     const video = document.getElementById('video');
+    log("Solicitando acceso a la cámara...");
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       .then(stream => {
         streamCamara = stream;
         video.srcObject = stream;
         video.play();
-        requestAnimationFrame(tick);
+        log("✅ Cámara activa.", "ok");
       })
       .catch(err => {
+        log("❌ Error de cámara: " + err.message, "error");
         document.getElementById("mensajeCamara").textContent = "❌ Error de cámara: " + err.message;
       });
   }
 
-  function tick() {
+  // Captura UN solo frame y trata de leer un QR en él. Ya no escanea de forma
+  // continua — solo cuando se presiona el botón. Así evitamos que un QR
+  // sostenido frente a la cámara se re-procese en bucle, y evitamos falsos
+  // "no reconocido" cuando simplemente no hay ningún QR en cuadro todavía.
+  function capturarYEscanear() {
+    if (!escaneando) return; // evita doble-tap mientras se muestra el resultado anterior
+
+    if (!rosterCargado) {
+      mostrarFlash(false, "⚠️ Lista de alumnos aún no cargada");
+      return;
+    }
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    if (video.readyState === video.HAVE_ENOUGH_DATA && escaneando) {
-      const ctx = canvas.getContext('2d');
-      canvas.height = video.videoHeight;
-      canvas.width = video.videoWidth;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-      if (code) procesarQR(code.data);
+
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      log("⚠️ La cámara todavía no tiene una imagen lista.", "error");
+      return;
     }
-    requestAnimationFrame(tick);
+
+    const ctx = canvas.getContext('2d');
+    canvas.height = video.videoHeight;
+    canvas.width = video.videoWidth;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+    if (!code) {
+      log("No se detectó ningún QR en la captura.");
+      mostrarMensajeSuave("No se detectó ningún QR, intenta de nuevo");
+      return;
+    }
+
+    log("QR detectado, contenido: " + code.data);
+    procesarQR(code.data);
+  }
+
+  function mostrarMensajeSuave(texto) {
+    const original = document.getElementById("mensajeCamara").textContent;
+    document.getElementById("mensajeCamara").textContent = texto;
+    setTimeout(() => {
+      document.getElementById("mensajeCamara").textContent = "Apunta al QR del alumno y presiona Escanear";
+    }, 1500);
   }
 
   // ================= IDENTIFICACIÓN LOCAL (sin red) =================
@@ -496,10 +586,12 @@
     const alumno = identificarAlumno(contenidoQR);
 
     if (!alumno) {
+      log(`❌ Contenido "${contenidoQR}" no coincide con ningún alumno del roster (${roster.length} cargados).`, "error");
       mostrarFlash(false, "❌ QR no reconocido");
       return;
     }
     if (idsYaRegistrados.has(alumno.id)) {
+      log(`⚠️ ${alumno.nombre} ${alumno.apellido} (${alumno.id}) ya estaba en la sesión.`);
       mostrarFlash(false, `⚠️ ${alumno.nombre} ya fue registrado`);
       return;
     }
@@ -642,20 +734,40 @@
 
     document.getElementById("mensajeCamara").textContent = "Guardando...";
     escaneando = false;
+    log(`Enviando lote de ${sesion.length} registros al backend...`);
 
     fetch(SCRIPT_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ accion: "guardar_lote", token: AUTH_TOKEN, registros: sesion })
     })
-      .then(r => r.json())
-      .then(data => {
+      .then(r => {
+        log(`Respuesta HTTP recibida: status ${r.status}`);
+        return r.text();
+      })
+      .then(texto => {
+        let data;
+        try {
+          data = JSON.parse(texto);
+        } catch (err) {
+          log("❌ La respuesta no es JSON válido. Contenido recibido: " + texto.slice(0, 300), "error");
+          alert("❌ El servidor respondió algo inesperado. Revisa el panel de logs (🐞). Tus datos siguen guardados localmente, no se perdieron.");
+          escaneando = true;
+          return;
+        }
+
+        if (data.ok) {
+          log("✅ Lote guardado correctamente: " + data.mensaje, "ok");
+        } else {
+          log("❌ El backend respondió ok:false → " + data.mensaje, "error");
+        }
         mostrarResumen(data);
         limpiarStorage();
         detenerCamara();
         resetearASesionNueva();
       })
-      .catch(() => {
+      .catch(err => {
+        log("❌ Error de red al guardar el lote: " + err.message, "error");
         alert("❌ No se pudo conectar para guardar la sesión. Los datos siguen guardados localmente, intenta de nuevo.");
         escaneando = true;
       });
