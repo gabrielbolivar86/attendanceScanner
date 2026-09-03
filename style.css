@@ -1,0 +1,282 @@
+:root {
+    --verde-primario: #218633;
+    --verde-acento: #67ac40;
+    --verde-suave: #7eae6f;
+    --verde-fondo: #eef5ec;
+    --blanco: #ffffff;
+    --texto: #16291c;
+    --borde: #e3ede0;
+    --rojo: #c0392b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Scoutie Sans', sans-serif;
+    color: var(--texto);
+    background: var(--blanco);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    background: var(--verde-primario);
+    color: var(--blanco);
+    padding: 16px 20px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 700;
+  }
+  header p {
+    margin: 2px 0 0;
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  /* ---------- Pantalla de reposo ---------- */
+  #pantallaReposo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 70px);
+    padding: 30px 20px;
+    text-align: center;
+  }
+  #pantallaReposo p {
+    color: #5c6b5f;
+    max-width: 280px;
+    margin-bottom: 24px;
+  }
+  .boton-principal {
+    background: var(--verde-primario);
+    color: var(--blanco);
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 18px 32px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .boton-principal:active { background: #1a6c29; }
+
+  /* ---------- Pantalla activa ---------- */
+  #pantallaActiva { display: none; padding-bottom: 90px; }
+
+  .barra-estado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--verde-fondo);
+    padding: 10px 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--verde-primario);
+  }
+  .barra-estado .punto {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--verde-acento);
+    margin-right: 6px;
+    animation: pulso 1.5s infinite;
+  }
+  @keyframes pulso {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  #videoContenedor {
+    position: relative;
+    background: #000;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-height: 60vh;
+    overflow: hidden;
+  }
+  #video { width: 100%; height: 100%; object-fit: cover; }
+  #mensajeCamara {
+    position: absolute;
+    bottom: 10px; left: 0; right: 0;
+    text-align: center;
+    color: white;
+    font-size: 0.85em;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  }
+
+  .acciones {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .boton-secundario {
+    background: var(--verde-suave);
+    color: var(--blanco);
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1em;
+  }
+  .boton-secundario:active { background: #6a9a5e; }
+
+  /* ---------- Log (vista compacta dentro de la página) ---------- */
+  #logCompacto {
+    margin: 0 16px;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--verde-fondo);
+    font-weight: 700;
+    font-size: 0.95em;
+  }
+  .boton-expandir {
+    background: none;
+    color: var(--verde-primario);
+    font-weight: 600;
+    font-size: 0.85em;
+    padding: 4px 8px;
+  }
+  .log-lista { max-height: 180px; overflow-y: auto; }
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-top: 1px solid var(--borde);
+    font-size: 0.9em;
+  }
+  .log-item .nombre { font-weight: 600; }
+  .etiqueta {
+    font-size: 0.72em;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    color: white;
+  }
+  .etiqueta.qr { background: var(--verde-acento); }
+  .etiqueta.manual { background: var(--verde-suave); }
+  .log-vacio { padding: 20px 14px; text-align: center; color: #8a9a8c; font-size: 0.9em; }
+
+  /* ---------- Botón fijo de terminar ---------- */
+  .barra-inferior {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--blanco);
+    border-top: 1px solid var(--borde);
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .boton-terminar {
+    background: var(--verde-primario);
+    color: var(--blanco);
+    font-weight: 700;
+    padding: 15px;
+    border-radius: 12px;
+    width: 100%;
+    font-size: 1em;
+  }
+  .boton-terminar:active { background: #1a6c29; }
+
+  /* ---------- Overlay de resultado (flash verde/rojo) ---------- */
+  #overlayResultado {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    text-align: center;
+    padding: 20px;
+  }
+  #overlayResultado.exito { background: var(--verde-acento); }
+  #overlayResultado.error { background: var(--rojo); }
+  #overlayResultado .icono { font-size: 5.5em; line-height: 1; }
+  #overlayResultado .texto { font-size: 1.4em; margin-top: 12px; font-weight: 700; color: white; }
+
+  /* ---------- Modal registro manual ---------- */
+  .modal-fondo {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(22,41,28,0.55);
+    display: none;
+    align-items: flex-end;
+    z-index: 998;
+  }
+  .modal-caja {
+    background: white;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  }
+  .modal-caja h2 { margin: 0 0 16px; font-size: 1.15em; }
+  .campo { margin-bottom: 12px; }
+  .campo label {
+    display: block;
+    font-size: 0.82em;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #4a5a4d;
+  }
+  .campo input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1em;
+    font-family: inherit;
+  }
+  .campo input:focus { outline: 2px solid var(--verde-acento); border-color: transparent; }
+  .modal-botones { display: flex; gap: 10px; margin-top: 8px; }
+  .modal-botones button { flex: 1; padding: 13px; border-radius: 10px; font-weight: 600; }
+  .btn-cancelar { background: var(--verde-fondo); color: var(--texto); }
+  .btn-guardar { background: var(--verde-primario); color: white; }
+
+  /* ---------- Log en pantalla completa ---------- */
+  #logCompleto {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: white;
+    display: none;
+    flex-direction: column;
+    z-index: 997;
+  }
+  .log-completo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--verde-primario);
+    color: white;
+  }
+  .log-completo-header h2 { margin: 0; font-size: 1.1em; }
+  .boton-cerrar {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    font-size: 1.1em;
+    line-height: 1;
+  }
+  #logCompletoLista { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+
+  /* ---------- Resumen final ---------- */
+  #modalResumen .modal-caja { text-align: center; }
+  #modalResumen .icono-resumen { font-size: 3.5em; margin-bottom: 10px; }
