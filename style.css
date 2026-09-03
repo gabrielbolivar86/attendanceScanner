@@ -172,6 +172,17 @@
   }
   .etiqueta.qr { background: var(--verde-acento); }
   .etiqueta.manual { background: var(--verde-suave); }
+  .log-item-derecha { display: flex; align-items: center; }
+  .icono-accion {
+    background: none;
+    border: none;
+    font-size: 1em;
+    padding: 2px 6px;
+    margin-left: 4px;
+    line-height: 1;
+    border-radius: 6px;
+  }
+  .icono-accion:active { background: var(--verde-fondo); }
   .log-vacio { padding: 20px 14px; text-align: center; color: #8a9a8c; font-size: 0.9em; }
 
   /* ---------- Botón fijo de terminar ---------- */

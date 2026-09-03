@@ -216,10 +216,14 @@
   // ================= REGISTRO MANUAL =================
 
   function abrirModalManual() {
+    document.getElementById("modalManualTitulo").textContent = "Registrar alumno nuevo";
+    document.getElementById("btnGuardarManual").textContent = "Agregar";
+    claveEnEdicion = null;
     document.getElementById("modalManual").style.display = "flex";
   }
   function cerrarModalManual() {
     document.getElementById("modalManual").style.display = "none";
+    claveEnEdicion = null;
     ["inputNombre","inputApellido","inputCelular","inputCurso"].forEach(id => {
       document.getElementById(id).value = "";
     });
@@ -235,11 +239,25 @@
       return;
     }
 
-    agregarASesion({
-      tipo: "nuevo",
-      nombre, apellido, celular, curso,
-      metodo: "manual"
-    });
+    if (claveEnEdicion) {
+      // Estamos editando un registro manual ya existente en la sesión
+      const registro = sesion.find(r => r.claveLocal === claveEnEdicion);
+      if (registro) {
+        registro.nombre = nombre;
+        registro.apellido = apellido;
+        registro.celular = celular;
+        registro.curso = curso;
+        guardarEnStorage();
+        renderizarLog();
+        log(`✏️ Registro editado: ${nombre} ${apellido}`);
+      }
+    } else {
+      agregarASesion({
+        tipo: "nuevo",
+        nombre, apellido, celular, curso,
+        metodo: "manual"
+      });
+    }
 
     cerrarModalManual();
     sonidoExito();
@@ -247,12 +265,49 @@
 
   // ================= MANEJO DE LA SESIÓN LOCAL =================
 
+  let claveEnEdicion = null; // si no es null, el modal manual está editando este registro en vez de crear uno nuevo
+  let siguienteClaveLocal = 1;
+
   function agregarASesion(registro) {
+    registro.claveLocal = "L" + (siguienteClaveLocal++);
     registro.hora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     sesion.push(registro);
     if (registro.id) idsYaRegistrados.add(registro.id);
     guardarEnStorage();
     renderizarLog();
+  }
+
+  function eliminarDeSesion(claveLocal) {
+    const registro = sesion.find(r => r.claveLocal === claveLocal);
+    if (!registro) return;
+    if (!confirm(`¿Eliminar el registro de ${registro.nombre} ${registro.apellido} de esta sesión?`)) return;
+
+    sesion = sesion.filter(r => r.claveLocal !== claveLocal);
+
+    // Si tenía ID y ya no queda ningún registro con ese mismo ID en la sesión,
+    // lo liberamos del set de duplicados para que se pueda volver a escanear.
+    if (registro.id && !sesion.some(r => r.id === registro.id)) {
+      idsYaRegistrados.delete(registro.id);
+    }
+
+    guardarEnStorage();
+    renderizarLog();
+    log(`🗑️ Registro eliminado: ${registro.nombre} ${registro.apellido}`);
+  }
+
+  function editarManual(claveLocal) {
+    const registro = sesion.find(r => r.claveLocal === claveLocal);
+    if (!registro) return;
+
+    claveEnEdicion = claveLocal;
+    document.getElementById("inputNombre").value = registro.nombre;
+    document.getElementById("inputApellido").value = registro.apellido;
+    document.getElementById("inputCelular").value = registro.celular || "";
+    document.getElementById("inputCurso").value = registro.curso;
+
+    document.getElementById("modalManualTitulo").textContent = "Editar registro";
+    document.getElementById("btnGuardarManual").textContent = "Guardar cambios";
+    document.getElementById("modalManual").style.display = "flex";
   }
 
   function renderizarLog() {
@@ -265,9 +320,11 @@
       : sesion.slice().reverse().map(r => `
           <div class="log-item">
             <span class="nombre">${escaparHtml(r.nombre)} ${escaparHtml(r.apellido)}</span>
-            <span>
+            <span class="log-item-derecha">
               <span class="etiqueta ${r.metodo}">${r.metodo === 'qr' ? 'QR' : 'Manual'}</span>
               <span style="margin-left:6px;color:#8a9a8c;font-size:0.85em;">${r.hora}</span>
+              ${r.metodo === 'manual' ? `<button class="icono-accion" onclick="editarManual('${r.claveLocal}')" title="Editar">✏️</button>` : ''}
+              <button class="icono-accion" onclick="eliminarDeSesion('${r.claveLocal}')" title="Eliminar">🗑️</button>
             </span>
           </div>
         `).join("");
@@ -306,6 +363,14 @@
       if (datos.sesion && datos.sesion.length > 0) {
         sesion = datos.sesion;
         idsYaRegistrados = new Set(datos.idsYaRegistrados || []);
+
+        // Evita que las nuevas claves locales choquen con las restauradas
+        const numeros = sesion
+          .map(r => parseInt(String(r.claveLocal || "L0").replace("L", ""), 10))
+          .filter(n => !isNaN(n));
+        siguienteClaveLocal = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+
+        log(`Sesión anterior restaurada: ${sesion.length} registros.`);
         renderizarLog();
       }
     } catch (e) { /* storage corrupto, se ignora */ }

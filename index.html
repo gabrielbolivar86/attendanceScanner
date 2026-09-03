@@ -79,7 +79,7 @@
 <!-- ===== Modal registro manual ===== -->
 <div class="modal-fondo" id="modalManual">
   <div class="modal-caja">
-    <h2>Registrar alumno nuevo</h2>
+    <h2 id="modalManualTitulo">Registrar alumno nuevo</h2>
     <div class="campo">
       <label>Nombre</label>
       <input type="text" id="inputNombre" autocomplete="off">
@@ -98,7 +98,7 @@
     </div>
     <div class="modal-botones">
       <button class="btn-cancelar" onclick="cerrarModalManual()">Cancelar</button>
-      <button class="btn-guardar" onclick="guardarManual()">Agregar</button>
+      <button class="btn-guardar" id="btnGuardarManual" onclick="guardarManual()">Agregar</button>
     </div>
   </div>
 </div>
