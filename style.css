@@ -255,6 +255,22 @@
     font-family: inherit;
   }
   .campo input:focus { outline: 2px solid var(--verde-acento); border-color: transparent; }
+  .grupo-botones-curso { display: flex; gap: 8px; }
+  .boton-curso {
+    flex: 1;
+    padding: 12px 6px;
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    background: var(--blanco);
+    color: var(--texto);
+    font-weight: 600;
+    font-size: 0.9em;
+  }
+  .boton-curso.seleccionado {
+    background: var(--verde-primario);
+    border-color: var(--verde-primario);
+    color: var(--blanco);
+  }
   .modal-botones { display: flex; gap: 10px; margin-top: 8px; }
   .modal-botones button { flex: 1; padding: 13px; border-radius: 10px; font-weight: 600; }
   .btn-cancelar { background: var(--verde-fondo); color: var(--texto); }

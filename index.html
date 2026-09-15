@@ -94,7 +94,12 @@
     </div>
     <div class="campo">
       <label>Curso</label>
-      <input type="text" id="inputCurso" autocomplete="off">
+      <div class="grupo-botones-curso">
+        <button type="button" class="boton-curso" data-curso="EC1" onclick="seleccionarCurso('EC1')">EC1</button>
+        <button type="button" class="boton-curso" data-curso="EC2" onclick="seleccionarCurso('EC2')">EC2</button>
+        <button type="button" class="boton-curso" data-curso="EC 1 y EC2" onclick="seleccionarCurso('EC 1 y EC2')">EC1 y EC2</button>
+      </div>
+      <input type="hidden" id="inputCurso">
     </div>
     <div class="modal-botones">
       <button class="btn-cancelar" onclick="cerrarModalManual()">Cancelar</button>

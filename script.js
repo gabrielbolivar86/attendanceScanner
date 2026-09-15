@@ -215,6 +215,13 @@
 
   // ================= REGISTRO MANUAL =================
 
+  function seleccionarCurso(curso) {
+    document.getElementById("inputCurso").value = curso;
+    document.querySelectorAll(".boton-curso").forEach(btn => {
+      btn.classList.toggle("seleccionado", btn.dataset.curso === curso);
+    });
+  }
+
   function abrirModalManual() {
     document.getElementById("modalManualTitulo").textContent = "Registrar alumno nuevo";
     document.getElementById("btnGuardarManual").textContent = "Agregar";
@@ -224,9 +231,11 @@
   function cerrarModalManual() {
     document.getElementById("modalManual").style.display = "none";
     claveEnEdicion = null;
-    ["inputNombre","inputApellido","inputCelular","inputCurso"].forEach(id => {
+    ["inputNombre","inputApellido","inputCelular"].forEach(id => {
       document.getElementById(id).value = "";
     });
+    document.getElementById("inputCurso").value = "";
+    document.querySelectorAll(".boton-curso").forEach(btn => btn.classList.remove("seleccionado"));
   }
   function guardarManual() {
     const nombre = document.getElementById("inputNombre").value.trim();
@@ -303,7 +312,7 @@
     document.getElementById("inputNombre").value = registro.nombre;
     document.getElementById("inputApellido").value = registro.apellido;
     document.getElementById("inputCelular").value = registro.celular || "";
-    document.getElementById("inputCurso").value = registro.curso;
+    seleccionarCurso(registro.curso);
 
     document.getElementById("modalManualTitulo").textContent = "Editar registro";
     document.getElementById("btnGuardarManual").textContent = "Guardar cambios";
