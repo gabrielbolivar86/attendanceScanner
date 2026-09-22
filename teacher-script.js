@@ -3,7 +3,7 @@ const TEACHER_PASSWORD = "connect2026";
 
 // Deben ser idénticos a los del escáner (index.html / Code.gs)
 const AUTH_TOKEN = "un-secreto-largo-y-dificil-2026";
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbygA2nrvO6M0ZN_G4Aa2_IhpjGi5ti8IYkNaV2CS7wvlXGCqKDCcPp4oIxGsw3JrSIH4A/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfXHOqt2ObX7nxtm-Iyq1otrDb0vV9tUWaH69BlsG1PRWjbfB0Puhawa9YW6CGNpo7Fw/exec";
 
 const CLAVE_SESION = "teacher_center_autenticado";
 
