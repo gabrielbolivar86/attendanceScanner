@@ -70,6 +70,14 @@
   }
   .boton-principal:active { background: #1a6c29; }
 
+  .enlace-teacher {
+    margin-top: 30px;
+    color: #9aab9c;
+    font-size: 0.85em;
+    text-decoration: none;
+  }
+  .enlace-teacher:active { color: var(--verde-primario); }
+
   /* ---------- Pantalla activa ---------- */
   #pantallaActiva { display: none; padding-bottom: 90px; }
 

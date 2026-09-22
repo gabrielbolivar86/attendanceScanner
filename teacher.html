@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Teacher Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Scoutie+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<link rel="stylesheet" href="teacher-style.css?v=1">
+</head>
+<body>
+
+<!-- ===== Pantalla de contraseña ===== -->
+<div id="pantallaLogin">
+  <div class="caja-login">
+    <h1>🔑 Teacher Center</h1>
+    <p>Ingresa la contraseña para continuar.</p>
+    <input type="password" id="inputPassword" placeholder="Contraseña" autocomplete="off">
+    <button class="boton" onclick="intentarLogin()">Entrar</button>
+    <p id="errorLogin" class="error-login"></p>
+    <a href="index.html" class="volver">← Volver al escáner</a>
+  </div>
+</div>
+
+<!-- ===== Dashboard (oculto hasta iniciar sesión) ===== -->
+<div id="dashboard" style="display:none;">
+
+  <header>
+    <div class="header-fila">
+      <h1>Teacher Center — English Connect</h1>
+      <button onclick="toggleDebug()" class="boton-debug">🐞</button>
+    </div>
+  </header>
+
+  <div id="panelDebug" class="panel-debug">
+    <div class="debug-header">
+      <span>LOG</span>
+      <span onclick="document.getElementById('debugLista').innerHTML=''">limpiar</span>
+    </div>
+    <div id="debugLista"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab activo" data-panel="panelClase" onclick="cambiarTab('clase', this)">Asistencia por clase</div>
+    <div class="tab" data-panel="panelAlumno" onclick="cambiarTab('alumno', this)">Asistencia por alumno</div>
+    <div class="tab" data-panel="panelQR" onclick="cambiarTab('qr', this)">Gestión de QR</div>
+  </div>
+
+  <!-- Vista: Asistencia por clase -->
+  <div class="panel activo" id="panelClase">
+    <div class="controles no-imprimir">
+      <select id="selCursoClase" onchange="alCambiarCursoClase()"></select>
+      <select id="selFechaClase" onchange="cargarAsistenciaPorClase()"></select>
+      <button class="boton suave" onclick="window.print()">🖨️ Exportar / Imprimir PDF</button>
+    </div>
+    <h3 id="tituloClase">Selecciona un curso y una fecha</h3>
+    <table>
+      <thead><tr><th>Nombre</th><th>Apellido</th><th>Método</th></tr></thead>
+      <tbody id="tablaClaseBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Vista: Asistencia por alumno (matriz) -->
+  <div class="panel" id="panelAlumno">
+    <div class="resumen-stats" id="resumenMatriz"></div>
+    <div class="controles no-imprimir">
+      <select id="selCursoMatriz" onchange="cargarMatriz()"></select>
+      <button class="boton suave" onclick="window.print()">🖨️ Exportar / Imprimir PDF</button>
+    </div>
+    <div class="matriz-wrap">
+      <table id="tablaMatriz"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Vista: Gestión de QR -->
+  <div class="panel" id="panelQR">
+    <div class="resumen-stats" id="resumenQR">Cargando...</div>
+    <div class="controles no-imprimir">
+      <select id="filtroQR" onchange="renderizarListaQR()">
+        <option value="todos">Todos los alumnos</option>
+        <option value="pendientes">Solo pendientes de QR</option>
+        <option value="generados">Solo con QR generado</option>
+      </select>
+    </div>
+    <div id="listaQR"></div>
+  </div>
+
+  <!-- Modal: vista previa del QR -->
+  <div class="modal-fondo" id="modalQR">
+    <div class="modal-caja">
+      <div id="badgePreview">
+        <div id="badgeHeader">English<span class="cursiva">Connect</span></div>
+        <div id="badgeCanvasWrap"><canvas id="canvasQR"></canvas></div>
+        <div id="badgeNombre"></div>
+      </div>
+      <div class="modal-botones">
+        <button class="boton" onclick="descargarBadge()">⬇️ Descargar imagen</button>
+        <button class="boton secundario" onclick="enviarWhatsapp()">💬 Enviar por WhatsApp</button>
+        <button class="boton suave" onclick="cerrarModalQR()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="teacher-script.js?v=1"></script>
+</body>
+</html>

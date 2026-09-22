@@ -1,0 +1,161 @@
+:root {
+  --verde-primario: #218633;
+  --verde-acento: #67ac40;
+  --verde-suave: #7eae6f;
+  --verde-fondo: #eef5ec;
+  --blanco: #ffffff;
+  --texto: #16291c;
+  --borde: #e3ede0;
+  --rojo: #c0392b;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Scoutie Sans', sans-serif; color:var(--texto); background:var(--verde-fondo); }
+
+/* ---------- Login ---------- */
+#pantallaLogin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--verde-primario);
+  padding: 20px;
+}
+.caja-login {
+  background: white;
+  border-radius: 16px;
+  padding: 30px 24px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+}
+.caja-login h1 { margin: 0 0 8px; font-size: 1.3em; color: var(--verde-primario); }
+.caja-login p { color: #5c6b5f; font-size: 0.9em; margin-bottom: 18px; }
+.caja-login input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font-size: 1em;
+  margin-bottom: 12px;
+  font-family: inherit;
+  text-align: center;
+}
+.caja-login .boton {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  background: var(--verde-primario);
+  color: white;
+  border: none;
+  font-weight: 700;
+  font-size: 1em;
+  cursor: pointer;
+}
+.error-login { color: var(--rojo); font-size: 0.85em; min-height: 18px; margin: 10px 0 0; }
+.volver { display:inline-block; margin-top:14px; color:#9aab9c; font-size:0.85em; text-decoration:none; }
+
+/* ---------- Header / tabs ---------- */
+header { background:var(--verde-primario); color:white; padding:16px 20px; }
+.header-fila { display:flex; align-items:center; justify-content:space-between; }
+header h1 { margin:0; font-size:1.15em; }
+.boton-debug {
+  background:rgba(255,255,255,0.2); color:white; width:34px; height:34px;
+  border-radius:50%; font-size:1em; border:none; flex-shrink:0; cursor:pointer;
+}
+
+.panel-debug {
+  display:none; background:#0d1b10; color:#8fe6a0; font-family:monospace; font-size:0.75em;
+  padding:10px 14px; max-height:160px; overflow-y:auto; white-space:pre-wrap;
+}
+.debug-header { display:flex; justify-content:space-between; color:#c9d9cb; font-weight:bold; margin-bottom:6px; }
+.debug-header span:last-child { cursor:pointer; }
+
+.tabs { display:flex; background:white; border-bottom:1px solid var(--borde); overflow-x:auto; }
+.tab { padding:14px 18px; cursor:pointer; font-weight:600; color:#6b7d6e; border-bottom:3px solid transparent; white-space:nowrap; }
+.tab.activo { color:var(--verde-primario); border-color:var(--verde-primario); }
+
+.panel { display:none; padding:18px; max-width:1000px; margin:0 auto; }
+.panel.activo { display:block; }
+
+.controles { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+select, button.boton {
+  padding:10px 14px; border-radius:10px; border:1px solid var(--borde);
+  font-family:inherit; font-size:0.95em; background:white;
+}
+button.boton { background:var(--verde-primario); color:white; border:none; font-weight:600; cursor:pointer; transition: background 0.1s, transform 0.1s; }
+button.boton.secundario { background:var(--verde-suave); }
+button.boton.suave { background:white; color:var(--verde-primario); border:1.5px solid var(--verde-primario); transition: background 0.1s, transform 0.1s; }
+button.boton:active, button.boton.suave:active { transform: scale(0.97); }
+button.boton:active { background:#1a6c29; }
+button.boton.secundario:active { background:#5a9536; }
+button.boton.suave:active { background:var(--verde-fondo); }
+
+table { width:100%; border-collapse:collapse; background:white; border-radius:10px; overflow:hidden; }
+th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--borde); font-size:0.9em; }
+th { background:var(--verde-fondo); font-weight:700; }
+.check-si { color:var(--verde-acento); font-weight:bold; text-align:center; }
+.check-no { color:#c7d4c8; text-align:center; }
+.etiqueta { font-size:0.72em; font-weight:700; padding:3px 8px; border-radius:20px; color:white; }
+.etiqueta.qr { background:var(--verde-acento); }
+.etiqueta.manual { background:var(--verde-suave); }
+.etiqueta.pendiente { background:#d9a441; }
+.etiqueta.generado { background:var(--verde-acento); }
+
+.resumen-stats {
+  background: white; border: 1px solid var(--borde); border-radius: 10px;
+  padding: 10px 14px; font-weight: 700; font-size: 0.9em; color: var(--verde-primario); margin-bottom: 14px;
+}
+
+.matriz-wrap { overflow-x:auto; }
+.matriz-wrap table { min-width:600px; }
+
+.fila-alumno-qr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; margin-bottom: 8px; background: white;
+  border: 1px solid var(--borde); border-radius: 12px;
+}
+.fila-alumno-qr .info { font-size: 0.9em; }
+.fila-alumno-qr .info .nombre { font-weight: 700; display: block; margin-bottom: 4px; }
+.fila-alumno-qr .acciones { display: flex; gap: 8px; align-items: center; }
+
+/* ---------- Modal de vista previa del QR ---------- */
+.modal-fondo {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(22,41,28,0.6); display:none; align-items:center; justify-content:center; z-index:999; padding:20px;
+}
+.modal-caja { background:white; border-radius:16px; padding:20px; max-width:340px; width:100%; text-align:center; }
+
+#badgePreview {
+  width: 300px; margin: 0 auto 16px; background: white;
+  border: 1px solid var(--borde); border-radius: 10px; overflow: hidden;
+}
+#badgeHeader { background: var(--verde-primario); color: white; padding: 16px; font-size: 1.4em; }
+#badgeHeader .cursiva { font-style: italic; }
+#badgeCanvasWrap { padding: 20px 20px 8px; }
+#badgeNombre { font-weight: 800; font-size: 1.2em; padding: 0 16px 20px; }
+
+.modal-botones { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+
+@media print {
+  header, .tabs, .controles, .no-imprimir, .panel-debug { display:none !important; }
+  .panel { display:block !important; padding:0; max-width:100%; }
+  body { background:white; }
+}
+
+/* ---------- Responsive (celular primero) ---------- */
+@media (max-width: 600px) {
+  header { padding:14px 16px; }
+  header h1 { font-size:1.05em; }
+  .tab { padding:12px 14px; font-size:0.85em; }
+  .panel { padding:12px; }
+  .controles { flex-direction:column; }
+  .controles select, .controles button.boton { width:100%; }
+  table { font-size:0.82em; }
+  th, td { padding:8px 6px; }
+  .fila-alumno-qr { flex-direction:column; align-items:flex-start; gap:8px; }
+  .fila-alumno-qr .acciones { width:100%; }
+  .fila-alumno-qr .acciones button { width:100%; }
+  .modal-caja { max-width:100%; padding:16px; }
+  #badgePreview { width:100%; max-width:280px; }
+  .resumen-stats { font-size:0.85em; }
+}
