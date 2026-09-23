@@ -9,6 +9,8 @@ const CLAVE_SESION = "teacher_center_autenticado";
 
 let alumnosQR = [];
 let alumnoActivo = null;
+let vistaClaseIniciada = false;
+let vistaMatrizIniciada = false;
 
 // ================= LOGIN =================
 
@@ -96,9 +98,11 @@ function cambiarTab(nombre, elementoTab) {
   elementoTab.classList.add("activo");
   document.getElementById(elementoTab.dataset.panel).classList.add("activo");
 
-  if (nombre === "clase" && document.getElementById("selCursoClase").options.length === 0) iniciarVistaClase();
-  if (nombre === "alumno" && document.getElementById("selCursoMatriz").options.length === 0) iniciarVistaMatriz();
-  if (nombre === "qr" && alumnosQR.length === 0) iniciarVistaQR();
+  // Cada vista se inicializa una sola vez (con estas banderas), así cambiar
+  // de pestaña varias veces rápido no dispara peticiones duplicadas al backend.
+  if (nombre === "clase" && !vistaClaseIniciada) { vistaClaseIniciada = true; iniciarVistaClase(); }
+  if (nombre === "alumno" && !vistaMatrizIniciada) { vistaMatrizIniciada = true; iniciarVistaMatriz(); }
+  if (nombre === "qr" && !vistaQRIniciada) iniciarVistaQR();
 }
 
 // ================= VISTA: ASISTENCIA POR CLASE =================
@@ -110,6 +114,7 @@ function iniciarVistaClase() {
       data.cursos.map(c => `<option value="${c}">${c}</option>`).join("");
     alCambiarCursoClase();
   }).catch(err => {
+    vistaClaseIniciada = false;
     document.getElementById("tituloClase").textContent = "❌ Error: " + err.message;
   });
 }
@@ -156,6 +161,7 @@ function iniciarVistaMatriz() {
       data.cursos.map(c => `<option value="${c}">${c}</option>`).join("");
     cargarMatriz();
   }).catch(err => {
+    vistaMatrizIniciada = false;
     document.querySelector("#tablaMatriz tbody").innerHTML =
       `<tr><td style="color:var(--rojo)">❌ ${err.message}</td></tr>`;
   });
@@ -188,11 +194,15 @@ function cargarMatriz() {
 
 // ================= VISTA: GESTIÓN DE QR =================
 
+let vistaQRIniciada = false;
+
 function iniciarVistaQR() {
+  vistaQRIniciada = true;
   llamarBackend("alumnos_qr").then(data => {
     alumnosQR = data.alumnos;
     renderizarListaQR();
   }).catch(err => {
+    vistaQRIniciada = false; // permite reintentar si falló
     document.getElementById("listaQR").innerHTML =
       `<p style="color:var(--rojo)">❌ Error al cargar alumnos: ${err.message}</p>`;
   });
