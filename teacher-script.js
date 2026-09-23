@@ -244,22 +244,25 @@ function abrirModalQR(idAlumno) {
     return;
   }
   if (typeof QRCode === "undefined") {
-    alert("❌ La librería de QR no cargó. Revisa tu conexión e intenta de nuevo.");
+    alert("❌ La librería de QR no cargó. Revisa que subiste qrcode-lib.js al repositorio.");
     log("❌ QRCode no está definido.", "error");
     return;
   }
   try {
     alumnoActivo = alumno;
     document.getElementById("badgeNombre").textContent = `${alumno.nombre} ${alumno.apellido}`;
-    QRCode.toCanvas(document.getElementById("canvasQR"), alumno.id, { width: 220, margin: 1 }, err => {
-      if (err) {
-        log("❌ Error de QRCode.toCanvas: " + err.message, "error");
-        alert("❌ Error al generar el QR: " + err.message);
-        return;
-      }
-      log("✅ QR generado, abriendo modal.", "ok");
-      document.getElementById("modalQR").style.display = "flex";
+
+    const contenedor = document.getElementById("qrContainer");
+    contenedor.innerHTML = ""; // limpia el QR anterior antes de dibujar el nuevo
+    new QRCode(contenedor, {
+      text: alumno.id,
+      width: 220,
+      height: 220,
+      correctLevel: QRCode.CorrectLevel.M
     });
+
+    log("✅ QR generado, abriendo modal.", "ok");
+    document.getElementById("modalQR").style.display = "flex";
   } catch (err) {
     log("❌ Excepción en abrirModalQR: " + err.message, "error");
     alert("❌ Error inesperado: " + err.message);
