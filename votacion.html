@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Canciones — English Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Scoutie+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="votacion-style.css?v=1">
+</head>
+<body>
+
+<!-- ===== Pantalla de login ===== -->
+<div id="pantallaLogin">
+  <div class="caja-login">
+    <h1>🎵 Canciones</h1>
+    <p>Ingresa con tu usuario y contraseña.</p>
+    <input type="text" id="inputUsuario" placeholder="Usuario" autocomplete="off">
+    <input type="password" id="inputContrasena" placeholder="Contraseña" autocomplete="off">
+    <button class="boton" onclick="intentarLogin()">Entrar</button>
+    <p id="errorLogin" class="error-login"></p>
+  </div>
+</div>
+
+<!-- ===== Vista del alumno (placeholder) ===== -->
+<div id="vistaAlumno" style="display:none;">
+  <header>
+    <div class="header-fila">
+      <div>
+        <h1>🎵 Canciones</h1>
+        <p id="bienvenidaAlumno"></p>
+      </div>
+      <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+  <div class="contenido">
+    <p>Panel de votación — próximamente aquí van las canciones para votar y la opción de sugerir una nueva.</p>
+  </div>
+</div>
+
+<!-- ===== Vista del profesor (placeholder) ===== -->
+<div id="vistaProfesor" style="display:none;">
+  <header>
+    <div class="header-fila">
+      <h1>🎵 Panel del profesor</h1>
+      <button class="boton-salir" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </header>
+  <div class="contenido">
+    <p>Panel de administración — próximamente aquí va el ranking de canciones y la opción de eliminarlas.</p>
+  </div>
+</div>
+
+<script src="votacion-script.js?v=1"></script>
+</body>
+</html>
