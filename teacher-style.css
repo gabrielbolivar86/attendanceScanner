@@ -131,7 +131,7 @@ th { background:var(--verde-fondo); font-weight:700; }
 }
 #badgeHeader { background: var(--verde-primario); color: white; padding: 16px; font-size: 1.4em; }
 #badgeHeader .cursiva { font-style: italic; }
-#badgeCanvasWrap { padding: 20px 20px 8px; }
+#badgeCanvasWrap { padding: 20px 20px 8px; display:flex; justify-content:center; }
 #badgeNombre { font-weight: 800; font-size: 1.2em; padding: 0 16px 20px; }
 
 .modal-botones { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
